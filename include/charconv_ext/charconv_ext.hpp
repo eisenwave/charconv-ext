@@ -79,7 +79,7 @@ consteval int u64_max_representable_digits_naive(const int base)
     return result - 1;
 }
 
-inline constexpr auto u64_max_representable_digits_table = [] {
+inline constexpr auto u64_max_representable_digits_table = []() consteval {
     std::array<signed char, 37> result {};
     for (std::size_t i = 2; i < result.size(); ++i) {
         result[i] = static_cast<signed char>(u64_max_representable_digits_naive(int(i)));
@@ -109,7 +109,7 @@ consteval std::uint64_t u64_pow_naive(const std::uint64_t x, const int y)
     return result;
 }
 
-inline constexpr auto u64_max_power_table = [] {
+inline constexpr auto u64_max_power_table = []() consteval {
     std::array<std::uint64_t, 37> result {};
     for (std::size_t i = 2; i < result.size(); ++i) {
         const int max_exponent = u64_max_representable_digits(int(i));
