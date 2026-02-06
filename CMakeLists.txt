@@ -13,4 +13,6 @@ target_sources(charconv_ext_test
 )
 target_link_libraries(charconv_ext_test charconv_ext)
 target_compile_definitions(charconv_ext_test PRIVATE CHARCONV_EXT_DONT_USE_STANDARD_LIBRARY)
-
+target_compile_options(charconv_ext_test PRIVATE
+    -Wall -Wextra -Wpedantic -Wnarrowing
+)
