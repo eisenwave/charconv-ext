@@ -435,6 +435,20 @@ to_chars(char* const first, char* const last, const int128_t x, const int base =
 #endif
 
 #ifdef CHARCONV_EXT_BITINT_MAXWIDTH
+#ifdef __clang__
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wbit-int-extension"
+#endif
+
+template <std::size_t N>
+using bit_int = _BitInt(N);
+template <std::size_t N>
+using bit_uint = unsigned _BitInt(N);
+
+#ifdef __clang__
+#pragma clang diagnostic pop
+#endif
+
 namespace detail {
 
 template <std::size_t N>
@@ -489,7 +503,7 @@ template <std::size_t N>
 constexpr std::to_chars_result to_chars(
     char* const first, //
     char* const last,
-    const _BitInt(N) x,
+    const bit_int<N> x,
     const int base = 10
 )
 {
@@ -502,7 +516,7 @@ template <std::size_t N>
 constexpr std::to_chars_result to_chars(
     char* const first, //
     char* const last,
-    const unsigned _BitInt(N) x,
+    const bit_uint<N> x,
     const int base = 10
 )
 {
@@ -515,7 +529,7 @@ template <std::size_t N>
 constexpr std::from_chars_result from_chars(
     const char* const first, //
     const char* const last,
-    _BitInt(N) & x,
+    bit_int<N>& x,
     const int base = 10
 )
 {
@@ -523,15 +537,15 @@ constexpr std::from_chars_result from_chars(
     static_assert(N <= 128, "Sorry, from_chars for _BitInt(129) and wider not implemented :(");
     detail::int_leastN_t<N> value {};
     const auto result = from_chars(first, last, value, base);
-    x = static_cast<_BitInt(N)>(value);
+    x = static_cast<bit_int<N>>(value);
     return result;
 }
 
 template <std::size_t N>
 constexpr std::from_chars_result from_chars(
-    const char* const first,
+    const char* const first, //
     const char* const last,
-    unsigned _BitInt(N) & x,
+    bit_uint<N>& x,
     const int base = 10
 )
 {
@@ -539,7 +553,7 @@ constexpr std::from_chars_result from_chars(
     static_assert(N <= 128, "Sorry, from_chars for _BitInt(129) and wider not implemented :(");
     detail::uint_leastN_t<N> value {};
     const auto result = from_chars(first, last, value, base);
-    x = static_cast<unsigned _BitInt(N)>(value);
+    x = static_cast<bit_uint<N>>(value);
     return result;
 }
 #endif
