@@ -493,8 +493,9 @@ constexpr std::to_chars_result to_chars(
     const int base = 10
 )
 {
+    using std::to_chars;
     static_assert(N <= 128, "Sorry, to_chars for _BitInt(129) and wider not implemented :(");
-    return std::to_chars(first, last, detail::int_leastN_t<N> { x }, base);
+    return to_chars(first, last, detail::int_leastN_t<N> { x }, base);
 }
 
 template <std::size_t N>
@@ -505,8 +506,9 @@ constexpr std::to_chars_result to_chars(
     const int base = 10
 )
 {
+    using std::to_chars;
     static_assert(N <= 128, "Sorry, to_chars for _BitInt(129) and wider not implemented :(");
-    return std::to_chars(first, last, detail::uint_leastN_t<N> { x }, base);
+    return to_chars(first, last, detail::uint_leastN_t<N> { x }, base);
 }
 
 template <std::size_t N>
