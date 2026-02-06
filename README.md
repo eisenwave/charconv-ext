@@ -1,3 +1,5 @@
+[![CMake on multiple platforms](https://github.com/eisenwave/charconv-ext/actions/workflows/cmake-multi-platform.yml/badge.svg)](https://github.com/eisenwave/charconv-ext/actions/workflows/cmake-multi-platform.yml)
+
 # `charconv-ext`
 
 `charconv-ext` is a single-header library
