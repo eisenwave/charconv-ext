@@ -8,6 +8,7 @@
 #include <climits>
 #include <cstdint>
 #include <exception>
+#include <system_error>
 
 #ifdef BITINT_MAXWIDTH
 #define CHARCONV_EXT_BITINT_MAXWIDTH BITINT_MAXWIDTH
@@ -536,8 +537,13 @@ constexpr std::from_chars_result from_chars(
     using std::from_chars;
     static_assert(N <= 128, "Sorry, from_chars for _BitInt(129) and wider not implemented :(");
     detail::int_leastN_t<N> value {};
-    const auto result = from_chars(first, last, value, base);
+    auto result = from_chars(first, last, value, base);
     x = static_cast<bit_int<N>>(value);
+    if (result.ec == std::errc {} && x != value) {
+        // This detects the case where parsing succeeded,
+        // but the result is not exactly representable as a bit-precise integer.
+        result.ec = std::errc::result_out_of_range;
+    }
     return result;
 }
 
@@ -550,10 +556,17 @@ constexpr std::from_chars_result from_chars(
 )
 {
     using std::from_chars;
-    static_assert(N <= 128, "Sorry, from_chars for _BitInt(129) and wider not implemented :(");
+    static_assert(
+        N <= 128, "Sorry, from_chars for unsigned _BitInt(129) and wider not implemented :("
+    );
     detail::uint_leastN_t<N> value {};
-    const auto result = from_chars(first, last, value, base);
+    auto result = from_chars(first, last, value, base);
     x = static_cast<bit_uint<N>>(value);
+    if (result.ec == std::errc {} && x != value) {
+        // This detects the case where parsing succeeded,
+        // but the result is not exactly representable as a bit-precise integer.
+        result.ec = std::errc::result_out_of_range;
+    }
     return result;
 }
 #endif
