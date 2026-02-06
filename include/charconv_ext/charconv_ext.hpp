@@ -5,8 +5,15 @@
 #include <array>
 #include <bit>
 #include <charconv>
+#include <climits>
 #include <cstdint>
 #include <exception>
+
+#ifdef BITINT_MAXWIDTH
+#define CHARCONV_EXT_BITINT_MAXWIDTH BITINT_MAXWIDTH
+#elif defined(__BITINT_MAXWIDTH__)
+#define CHARCONV_EXT_BITINT_MAXWIDTH __BITINT_MAXWIDTH__
+#endif
 
 #ifndef CHARCONV_EXT_ASSERT
 #include <cassert>
@@ -176,9 +183,8 @@ pattern_length(const char* const first, const char* const last, const int base)
 /// this simply calls `std::from_chars` for 64-bit integers.
 /// In the worst case, three such 64-bit calls are needed,
 /// handling 19 digits at a time, with 39 decimal digits being the maximum for 128-bit.
-[[nodiscard]]
 constexpr std::from_chars_result
-from_chars(const char* const first, const char* const last, uint128_t& out, int base)
+from_chars(const char* const first, const char* const last, uint128_t& out, int base = 10)
 {
     CHARCONV_EXT_ASSERT(base >= 2);
     CHARCONV_EXT_ASSERT(base <= 36);
@@ -263,9 +269,8 @@ from_chars(const char* const first, const char* const last, uint128_t& out, int 
     }
 }
 
-[[nodiscard]]
 constexpr std::from_chars_result
-from_chars(const char* const first, const char* const last, int128_t& out, const int base)
+from_chars(const char* const first, const char* const last, int128_t& out, const int base = 10)
 {
     CHARCONV_EXT_ASSERT(first);
     CHARCONV_EXT_ASSERT(last);
@@ -300,9 +305,8 @@ from_chars(const char* const first, const char* const last, int128_t& out, const
     return result;
 }
 
-[[nodiscard]]
 constexpr std::to_chars_result
-to_chars(char* const first, char* const last, const uint128_t x, const int base)
+to_chars(char* const first, char* const last, const uint128_t x, const int base = 10)
 {
     CHARCONV_EXT_ASSERT(first);
     CHARCONV_EXT_ASSERT(last);
@@ -407,9 +411,8 @@ to_chars(char* const first, char* const last, const uint128_t x, const int base)
     CHARCONV_EXT_UNREACHABLE();
 }
 
-[[nodiscard]]
 constexpr std::to_chars_result
-to_chars(char* const first, char* const last, const int128_t x, const int base)
+to_chars(char* const first, char* const last, const int128_t x, const int base = 10)
 {
     CHARCONV_EXT_ASSERT(first);
     CHARCONV_EXT_ASSERT(last);
@@ -429,6 +432,114 @@ to_chars(char* const first, char* const last, const int128_t x, const int base)
     return to_chars(first + 1, last, -uint128_t(x), base);
 }
 
+#endif
+
+#ifdef CHARCONV_EXT_BITINT_MAXWIDTH
+namespace detail {
+
+template <std::size_t N>
+consteval auto int_least()
+{
+    if constexpr (N <= 8) {
+        return std::int_least8_t {};
+    }
+    else if constexpr (N <= 16) {
+        return std::int_least16_t {};
+    }
+    else if constexpr (N <= 32) {
+        return std::int_least32_t {};
+    }
+    else if constexpr (N <= 64) {
+        return std::int_least64_t {};
+    }
+    else if constexpr (N <= 128) {
+        return int128_t {};
+    }
+}
+
+template <std::size_t N>
+consteval auto uint_least()
+{
+    if constexpr (N <= 8) {
+        return std::uint_least8_t {};
+    }
+    else if constexpr (N <= 16) {
+        return std::uint_least16_t {};
+    }
+    else if constexpr (N <= 32) {
+        return std::uint_least32_t {};
+    }
+    else if constexpr (N <= 64) {
+        return std::uint_least64_t {};
+    }
+    else if constexpr (N <= 128) {
+        return uint128_t {};
+    }
+}
+
+template <std::size_t N>
+using int_leastN_t = decltype(int_least<N>());
+
+template <std::size_t N>
+using uint_leastN_t = decltype(uint_least<N>());
+
+} // namespace detail
+
+template <std::size_t N>
+constexpr std::to_chars_result to_chars(
+    char* const first, //
+    char* const last,
+    const _BitInt(N) x,
+    const int base = 10
+)
+{
+    static_assert(N <= 128, "Sorry, to_chars for _BitInt(129) and wider not implemented :(");
+    return std::to_chars(first, last, detail::int_leastN_t<N> { x }, base);
+}
+
+template <std::size_t N>
+constexpr std::to_chars_result to_chars(
+    char* const first, //
+    char* const last,
+    const unsigned _BitInt(N) x,
+    const int base = 10
+)
+{
+    static_assert(N <= 128, "Sorry, to_chars for _BitInt(129) and wider not implemented :(");
+    return std::to_chars(first, last, detail::uint_leastN_t<N> { x }, base);
+}
+
+template <std::size_t N>
+constexpr std::from_chars_result from_chars(
+    const char* const first, //
+    const char* const last,
+    _BitInt(N) & x,
+    const int base = 10
+)
+{
+    using std::from_chars;
+    static_assert(N <= 128, "Sorry, from_chars for _BitInt(129) and wider not implemented :(");
+    detail::int_leastN_t<N> value {};
+    const auto result = from_chars(first, last, value, base);
+    x = static_cast<_BitInt(N)>(value);
+    return result;
+}
+
+template <std::size_t N>
+constexpr std::from_chars_result from_chars(
+    const char* const first,
+    const char* const last,
+    unsigned _BitInt(N) & x,
+    const int base = 10
+)
+{
+    using std::from_chars;
+    static_assert(N <= 128, "Sorry, from_chars for _BitInt(129) and wider not implemented :(");
+    detail::uint_leastN_t<N> value {};
+    const auto result = from_chars(first, last, value, base);
+    x = static_cast<unsigned _BitInt(N)>(value);
+    return result;
+}
 #endif
 
 } // namespace charconv_ext
