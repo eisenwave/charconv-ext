@@ -178,6 +178,45 @@ void run_fuzz_tests()
 }
 
 } // namespace
+
+#ifdef CHARCONV_EXT_BITINT_MAXWIDTH
+template std::to_chars_result to_chars(char*, char*, _BitInt(2), int);
+template std::to_chars_result to_chars(char*, char*, _BitInt(8), int);
+template std::to_chars_result to_chars(char*, char*, _BitInt(16), int);
+template std::to_chars_result to_chars(char*, char*, _BitInt(32), int);
+template std::to_chars_result to_chars(char*, char*, _BitInt(64), int);
+
+template std::to_chars_result to_chars(char*, char*, unsigned _BitInt(1), int);
+template std::to_chars_result to_chars(char*, char*, unsigned _BitInt(8), int);
+template std::to_chars_result to_chars(char*, char*, unsigned _BitInt(16), int);
+template std::to_chars_result to_chars(char*, char*, unsigned _BitInt(32), int);
+template std::to_chars_result to_chars(char*, char*, unsigned _BitInt(64), int);
+
+template std::from_chars_result from_chars(const char*, const char*, _BitInt(2) &, int);
+template std::from_chars_result from_chars(const char*, const char*, _BitInt(8) &, int);
+template std::from_chars_result from_chars(const char*, const char*, _BitInt(16) &, int);
+template std::from_chars_result from_chars(const char*, const char*, _BitInt(32) &, int);
+template std::from_chars_result from_chars(const char*, const char*, _BitInt(64) &, int);
+
+template std::from_chars_result from_chars(const char*, const char*, unsigned _BitInt(1) &, int);
+template std::from_chars_result from_chars(const char*, const char*, unsigned _BitInt(8) &, int);
+template std::from_chars_result from_chars(const char*, const char*, unsigned _BitInt(16) &, int);
+template std::from_chars_result from_chars(const char*, const char*, unsigned _BitInt(32) &, int);
+template std::from_chars_result from_chars(const char*, const char*, unsigned _BitInt(64) &, int);
+
+#if CHARCONV_EXT_BITINT_MAXWIDTH >= 128
+template std::to_chars_result to_chars(char*, char*, _BitInt(100), int);
+template std::to_chars_result to_chars(char*, char*, _BitInt(128), int);
+template std::to_chars_result to_chars(char*, char*, unsigned _BitInt(100), int);
+template std::to_chars_result to_chars(char*, char*, unsigned _BitInt(128), int);
+template std::from_chars_result from_chars(const char*, const char*, _BitInt(100) &, int);
+template std::from_chars_result from_chars(const char*, const char*, _BitInt(128) &, int);
+template std::from_chars_result from_chars(const char*, const char*, unsigned _BitInt(100) &, int);
+template std::from_chars_result from_chars(const char*, const char*, unsigned _BitInt(128) &, int);
+#endif
+
+#endif
+
 } // namespace charconv_ext
 
 int main()
